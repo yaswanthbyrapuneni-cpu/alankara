@@ -6,30 +6,30 @@ import { getJewelryPlacement, JewelryType } from "../utils/jewelry-positioner";
 
 // Function to check if an ear is visible based on landmark visibility and face angle
 function checkEarVisibility(landmarks: NormalizedLandmark[], side: 'left' | 'right'): boolean {
-  // Ear landmark indices
-  const earTopIndex = side === 'left' ? 132 : 361;
-  const earBottomIndex = side === 'left' ? 177 : 401;
+  // Using the same landmarks as the positioning logic
+  // Left ear: 234, Right ear: 454
+  const earIndex = side === 'left' ? 234 : 454;
   const noseIndex = 1;  // Nose tip landmark
   
-  const earTop = landmarks[earTopIndex];
-  const earBottom = landmarks[earBottomIndex];
+  const ear = landmarks[earIndex];
   const noseTip = landmarks[noseIndex];
 
-  if (!earTop || !earBottom || !noseTip) {
+  if (!ear || !noseTip) {
     return false;
   }
 
-  // Check if ear landmarks are present
-  if (!earTop.hasOwnProperty('x') || !earBottom.hasOwnProperty('x')) {
+  // Check if ear landmark is valid
+  if (!ear.hasOwnProperty('x')) {
     return false;
   }
 
   // Calculate visibility based on relative position to nose
-  const earX = (earTop.x + earBottom.x) / 2;
   if (side === 'left') {
-    return earX < noseTip.x; // Left ear should be to the left of nose
+    // Left ear should be to the left of nose
+    return ear.x < noseTip.x - 0.02;
   } else {
-    return earX > noseTip.x; // Right ear should be to the right of nose
+    // Right ear should be to the right of nose
+    return ear.x > noseTip.x + 0.02;
   }
 }
 
