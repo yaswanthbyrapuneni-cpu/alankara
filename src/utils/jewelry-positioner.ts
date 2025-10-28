@@ -127,40 +127,70 @@ export function getJewelryPlacement(
     }
 
     case 'earring-left': {
-      const earlobeTop = landmarks[132];
-      const earlobeBottom = landmarks[177];
-
-      if (!earlobeTop || !earlobeBottom) return null;
+      // Using the CORRECT landmark from the working Python script
+      // Landmark 234: Left ear attachment point (where ear meets face)
+      const earLobe = landmarks[234];
       
-      const earlobeHeight = getDistance(earlobeTop, earlobeBottom);
-      const targetWidth = earlobeHeight * 10;
-      const targetHeight = targetWidth / imageAspectRatio;
-      const midPointY = (earlobeTop.y + earlobeBottom.y) / 2;
-
+      // Also get the opposite side for face width calculation
+      const rightEar = landmarks[454];
+      
+      if (!earLobe || !rightEar) return null;
+      
+      // Calculate face width for proportional sizing (matching Python script approach)
+      const faceWidth = getDistance(earLobe, rightEar);
+      
+      // Size calculation matching Python: face_width / 700.0
+      // Converting to canvas pixels and creating proper aspect ratio
+      const scale = faceWidth / 700.0;
+      const targetWidth = image.width * scale;
+      const targetHeight = image.height * scale;
+      
+      // Position earring so it HANGS from the ear lobe
+      // The TOP of the earring image should be at the lobe point
+      // X: centered on the ear lobe with slight inward offset
+      // Y: offset down from the ear attachment to reach the actual lobe
+      const X_OFFSET_LEFT = -5;  // Slight inward adjustment (in pixels)
+      const Y_OFFSET = 15;        // Move DOWN to the earlobe (matching Python script)
+      
       return {
         width: targetWidth,
         height: targetHeight,
-        x: earlobeTop.x * canvas.width - targetWidth / 2,
-        y: midPointY * canvas.height - targetHeight / 2,
+        x: earLobe.x * canvas.width - targetWidth / 2 + X_OFFSET_LEFT,
+        y: earLobe.y * canvas.height + Y_OFFSET, // Move down to actual earlobe position
       };
     }
       
     case 'earring-right': {
-      const earlobeTop = landmarks[361];
-      const earlobeBottom = landmarks[401];
-
-      if (!earlobeTop || !earlobeBottom) return null;
-
-      const earlobeHeight = getDistance(earlobeTop, earlobeBottom);
-      const targetWidth = earlobeHeight * 10;
-      const targetHeight = targetWidth / imageAspectRatio;
-      const midPointY = (earlobeTop.y + earlobeBottom.y) / 2;
-
+      // Using the CORRECT landmark from the working Python script
+      // Landmark 454: Right ear attachment point (where ear meets face)
+      const earLobe = landmarks[454];
+      
+      // Also get the opposite side for face width calculation
+      const leftEar = landmarks[234];
+      
+      if (!earLobe || !leftEar) return null;
+      
+      // Calculate face width for proportional sizing (matching Python script approach)
+      const faceWidth = getDistance(leftEar, earLobe);
+      
+      // Size calculation matching Python: face_width / 700.0
+      // Converting to canvas pixels and creating proper aspect ratio
+      const scale = faceWidth / 700.0;
+      const targetWidth = image.width * scale;
+      const targetHeight = image.height * scale;
+      
+      // Position earring so it HANGS from the ear lobe
+      // The TOP of the earring image should be at the lobe point
+      // X: centered on the ear lobe with slight inward offset
+      // Y: offset down from the ear attachment to reach the actual lobe
+      const X_OFFSET_RIGHT = 5;   // Slight inward adjustment (in pixels)
+      const Y_OFFSET = 15;         // Move DOWN to the earlobe (matching Python script)
+      
       return {
         width: targetWidth,
         height: targetHeight,
-        x: earlobeTop.x * canvas.width - targetWidth / 2,
-        y: midPointY * canvas.height - targetHeight / 2,
+        x: earLobe.x * canvas.width - targetWidth / 2 + X_OFFSET_RIGHT,
+        y: earLobe.y * canvas.height + Y_OFFSET, // Move down to actual earlobe position
       };
     }
 
