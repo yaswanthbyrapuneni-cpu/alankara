@@ -72,7 +72,10 @@ export function getJewelryPlacement(
       const leftCheek = landmarks[123];     // Left cheek
       const rightCheek = landmarks[352];    // Right cheek
 
-      if (!chin || !leftJaw || !rightJaw || !leftNeck || !rightNeck) return null;
+      // Validate required landmarks
+      if (!chin || !leftJaw || !rightJaw || !leftNeck || !rightNeck || !leftCheek || !rightCheek) {
+        return null;
+      }
 
       // Calculate neck width and position
       const neckWidth = getDistance(leftNeck, rightNeck);
@@ -83,19 +86,20 @@ export function getJewelryPlacement(
       const maxWidth = Math.max(neckWidth, cheekWidth, jawWidth);
       
       // Adjust scale based on jewelry type
-      let scaleMultiplier;
-      let verticalOffset;
+      let scaleMultiplier: number;
+      let verticalOffset: number;
       
       switch (jewelryType) {
         case 'CHAINS':
-          // Optimized for the new chain design
-          scaleMultiplier = 1.5;     // Increased width to better show chain detail
-          verticalOffset = 0.07;      // Moved slightly higher for better neck placement
+          // Chains sit closer to the collarbone and should be slightly smaller / higher
+          scaleMultiplier = 2.1;
+          verticalOffset = 0.02; // move slightly down from neck center
           break;
         case 'HARAMS':
-          // Harams are wider and sit lower with extended length
-          scaleMultiplier = 2.5;     // Wider coverage for traditional design
-          verticalOffset = 0.15;     // Lower placement to show full length
+          // Harams are longer but should start nearer the neck/collarbone.
+          // Lower this so the necklace hangs naturally and fits the neck.
+          scaleMultiplier = 2.4;   // slightly reduced width for better fit
+          verticalOffset = 0.06;   // move DOWN by 6% of canvas height to lower position
           break;
         default:
           // Regular necklaces
@@ -116,8 +120,9 @@ export function getJewelryPlacement(
       // Calculate optimal Y position
       const neckY = (leftNeck.y + rightNeck.y) / 2;
       const chinY = chin.y;
-      const baseY = (neckY * 0.7 + chinY * 0.3); // Weight more towards neck
-
+      // Give more influence to the chin so heavier/longer necklaces hang lower
+      const baseY = (neckY * 0.5 + chinY * 0.5);
+      
       return {
         width: targetWidth,
         height: targetHeight,
@@ -217,9 +222,8 @@ export function getJewelryPlacement(
       
     case 'ring':
     case 'RINGS': {
-      // For rings, use index finger tip and base for placement
-      const fingerTip = landmarks[6];  // Index finger tip
-      const fingerBase = landmarks[5]; // Index finger base
+      const fingerTip = landmarks[6];  
+      const fingerBase = landmarks[5]; 
       
       if (!fingerTip || !fingerBase) return null;
       
@@ -227,11 +231,15 @@ export function getJewelryPlacement(
       const targetWidth = fingerWidth * 0.8;
       const targetHeight = targetWidth / imageAspectRatio;
       
+      // Calculate offset to move ring down to BASE knuckle position
+      const fingerLength = getDistance(fingerTip, fingerBase);
+      const downwardOffset = fingerLength * 0.6; // ← INCREASE from 0.3 to 0.6
+      
       return {
         width: targetWidth,
         height: targetHeight,
         x: fingerTip.x * canvas.width - targetWidth / 2,
-        y: fingerTip.y * canvas.height - targetHeight / 2
+        y: fingerTip.y * canvas.height - targetHeight / 2 + downwardOffset
       };
     }
     
@@ -361,9 +369,9 @@ export function getJewelryPlacement(
       // Use the widest measurement to set the scale
       const maxWidth = Math.max(neckWidth, cheekWidth, jawWidth);
       
-      // Pendants should be sized proportionally to necklaces but smaller
-      const scaleMultiplier = 0.4;  // 40% the size of a necklace
-      const verticalOffset = 0.15;  // Position it lower than a necklace
+      // INCREASED size - make pendant more visible
+      const scaleMultiplier = 0.6;  // CHANGED from 0.4 to 0.6 (50% bigger)
+      const verticalOffset = 0.08;  // ADJUSTED - middle position between too high and too low
       
       const targetWidth = maxWidth * scaleMultiplier;
       const targetHeight = targetWidth / imageAspectRatio;
@@ -375,10 +383,10 @@ export function getJewelryPlacement(
         (leftCheek.x + rightCheek.x) / 2
       ) / 3;
 
-      // Calculate optimal Y position
+      // Calculate optimal Y position - balanced between neck and chin
       const neckY = (leftNeck.y + rightNeck.y) / 2;
       const chinY = chin.y;
-      const baseY = (neckY * 0.7 + chinY * 0.3); // Weight more towards neck
+      const baseY = (neckY * 0.6 + chinY * 0.4); // BALANCED: 60% neck, 40% chin
 
       return {
         width: targetWidth,
